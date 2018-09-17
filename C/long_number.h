@@ -126,9 +126,21 @@ Long_num& Long_num::diff(Long_num & b){
 }
 
 Long_num& Long_num::operator+(Long_num & b){
-  return summ(b);
+  if(this->positive && b.positive) return summ(b);
+  if(this->positive && !(b.positive)) return diff(b);
+  if(!(this->positive) && b.positive) return b.diff(*this);
+  if(!(this->positive) && !(b.positive)){
+    Long_num *res = new Long_num(summ(b));
+    return *res;
+  }
 }
 
 Long_num& Long_num::operator-(Long_num & b){
-  return diff(b);
+  if(this->positive && b.positive) return diff(b);
+  if(this->positive && !(b.positive)) return summ(b);
+  if(!(this->positive) && b.positive){
+    Long_num *res = new Long_num(b.summ(*this));
+    return *res;
+  }
+  if(!(this->positive) && !(b.positive)) return b.diff(*this);
 }
