@@ -16,9 +16,13 @@ public:
   void set_positivity(bool);
   Long_num& summ(Long_num &);
   Long_num& diff(Long_num &);
+  Long_num& mult(Long_num &);
+  Long_num& exp(int n);
 
   Long_num& operator+(Long_num &);
   Long_num& operator-(Long_num &);
+  Long_num& operator*(Long_num &);
+  Long_num& operator^(int);
 };
 
 Long_num::Long_num(){
@@ -53,7 +57,10 @@ Long_num::Long_num(Long_num & original){
   for(int i = 0; i < original.number.size(); i++){
     number.push_back(original.number[i]);
   }
-  if (original.number[0] != 0 || original.number.size() != 1) positive = !(original.positive);
+  positive = original.positive;
+  // if (!(original.number[0] == 0 && original.number.size() == 1)){
+  //   positive = !(original.positive);
+  // }
 }
 
 void Long_num::print(){
@@ -88,7 +95,8 @@ Long_num& Long_num::summ(Long_num & b){
   }
   if(result[result.size() - 1] == 0) result.pop_back();
   Long_num* c = new Long_num(result);
-  c->set_positivity(!res_pos);
+  //c->set_positivity(!res_pos);
+  c->set_positivity(res_pos);
   return *c;
 }
 
@@ -121,8 +129,48 @@ Long_num& Long_num::diff(Long_num & b){
   }
 
   Long_num* c = new Long_num(result);
-  c->set_positivity(!res_pos);
+  //c->set_positivity(!res_pos);
+  c->set_positivity(res_pos);
   return *c;
+}
+
+Long_num& Long_num::mult(Long_num & b){
+  vector<int> result;
+  int len_a = this->number.size();
+  int len_b = b.number.size();
+  for(int i = 0; i < len_b; i++){
+    for(int j = 0; j < len_a; j++){
+      if(i + j == result.size()) result.push_back(0);
+      result[i + j] += b.number[i] * this->number[j];
+    }
+  }
+  for(int i = 0; i < result.size(); i++){
+    if(result[i] > 10){
+      if(i == result.size() - 1){
+        result.push_back(0);
+      }
+      result[i + 1] += result[i] / 10;
+      result[i] %= 10;
+    }
+  }
+  while(result[result.size() - 1] == 0 && result.size() > 1){
+    result.pop_back();
+  }
+  Long_num* c = new Long_num(result);
+  //c->set_positivity(!((this->positive && b.positive)||(!(this->positive) && !(b.positive))));
+  c->set_positivity((this->positive && b.positive)||(!(this->positive) && !(b.positive)));
+  return *c;
+}
+
+Long_num& Long_num::exp(int n){
+  Long_num *res = new Long_num(*this);
+  res -> set_positivity(this->positive);
+  for (int i = 1; i < n; i++){
+    *res = mult(*res);
+  }
+  if(n % 2 == 0) res -> set_positivity(true);
+  else res -> set_positivity(this->positive);
+  return *res;
 }
 
 Long_num& Long_num::operator+(Long_num & b){
@@ -131,6 +179,7 @@ Long_num& Long_num::operator+(Long_num & b){
   if(!(this->positive) && b.positive) return b.diff(*this);
   if(!(this->positive) && !(b.positive)){
     Long_num *res = new Long_num(summ(b));
+    res -> set_positivity(false);
     return *res;
   }
 }
@@ -140,7 +189,16 @@ Long_num& Long_num::operator-(Long_num & b){
   if(this->positive && !(b.positive)) return summ(b);
   if(!(this->positive) && b.positive){
     Long_num *res = new Long_num(b.summ(*this));
+    res -> set_positivity(false);
     return *res;
   }
   if(!(this->positive) && !(b.positive)) return b.diff(*this);
+}
+
+Long_num& Long_num::operator*(Long_num & b){
+  return mult(b);
+}
+
+Long_num& Long_num::operator^(int n){
+  return exp(n);
 }

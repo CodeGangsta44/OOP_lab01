@@ -13,5 +13,11 @@ int main(){
   Long_num d = a - b;
   cout << "DIFF: ";
   d.print();
+  Long_num f = a * b;
+  cout << "MULT: ";
+  f.print();
+  Long_num e = a^3;
+  cout << "EXPO: ";
+  e.print();
   return 0;
 }
