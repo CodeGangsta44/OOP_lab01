@@ -7,6 +7,11 @@ int main(){
   a.print();
   Long_num b;
   b.print();
-  Long_num c = a+b;
+  Long_num c = a + b;
+  cout << "SUMM: ";
+  c.print();
+  Long_num d = a - b;
+  cout << "DIFF: ";
+  d.print();
   return 0;
 }

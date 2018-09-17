@@ -11,9 +11,14 @@ public:
   Long_num();
   Long_num(vector<int> &);
   Long_num(Long_num &);
+
   void print();
   void set_positivity(bool);
+  Long_num& summ(Long_num &);
+  Long_num& diff(Long_num &);
+
   Long_num& operator+(Long_num &);
+  Long_num& operator-(Long_num &);
 };
 
 Long_num::Long_num(){
@@ -45,11 +50,10 @@ Long_num::Long_num(vector<int> & v){
 }
 
 Long_num::Long_num(Long_num & original){
-  int i = 0;
-  for(i; i < original.number.size(); i++){
+  for(int i = 0; i < original.number.size(); i++){
     number.push_back(original.number[i]);
   }
-  if (original.number[0] != 0) positive = !(original.positive);
+  if (original.number[0] != 0 || original.number.size() != 1) positive = !(original.positive);
 }
 
 void Long_num::print(){
@@ -65,8 +69,9 @@ void Long_num::set_positivity(bool pos){
   positive = pos;
 }
 
-Long_num& Long_num::operator+(Long_num & b){
+Long_num& Long_num::summ(Long_num & b){
   vector<int> result;
+  bool res_pos = true;
   result.push_back(0);
   int max_len = max(this->number.size(), b.number.size());
 
@@ -83,6 +88,47 @@ Long_num& Long_num::operator+(Long_num & b){
   }
   if(result[result.size() - 1] == 0) result.pop_back();
   Long_num* c = new Long_num(result);
-  c->print();
+  c->set_positivity(!res_pos);
   return *c;
+}
+
+Long_num& Long_num::diff(Long_num & b){
+  bool res_pos = true;
+  vector<int> result;
+  for(int i = 0; i < this->number.size(); i++){
+    result.push_back(this->number[i]);
+  }
+
+  for (int i = 0; i < b.number.size(); i++){
+    if(i == result.size()) result.push_back(0);
+    result[i] -= b.number[i];
+  }
+  if(result[result.size() - 1] < 0){
+    for(int i = 0; i < result.size(); i++){
+      result[i] *= (-1);
+    }
+    res_pos = false;
+  }
+  for(int i = result.size() - 1; i >= 0; i--){
+    if(result[i] < 0){
+      result[i] += 10;
+      result[i + 1] -= 1;
+      i+=2;
+    }
+  }
+  while(result[result.size() - 1] == 0 && result.size() > 1){
+    result.pop_back();
+  }
+
+  Long_num* c = new Long_num(result);
+  c->set_positivity(!res_pos);
+  return *c;
+}
+
+Long_num& Long_num::operator+(Long_num & b){
+  return summ(b);
+}
+
+Long_num& Long_num::operator-(Long_num & b){
+  return diff(b);
 }
