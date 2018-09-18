@@ -16,8 +16,14 @@ int main(){
   Long_num f = a * b;
   cout << "MULT: ";
   f.print();
-  Long_num e = a^3;
+  Long_num e = a^b;
   cout << "EXPO: ";
   e.print();
+  Long_num g = a / b;
+  cout << "DIVI: ";
+  g.print();
+  Long_num h = a.sqrt();
+  cout << "SQRT: ";
+  h.print();
   return 0;
 }

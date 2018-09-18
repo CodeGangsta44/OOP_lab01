@@ -1,11 +1,13 @@
 #include <vector>
 #include <string>
+#include <cmath>
 #include <iostream>
 
 using namespace std;
 
 class Long_num{
   bool positive = true;
+  bool correct = true;
   vector<int> number;
 public:
   Long_num();
@@ -14,15 +16,21 @@ public:
 
   void print();
   void set_positivity(bool);
+  void set_correctness(bool);
   Long_num& summ(Long_num &);
   Long_num& diff(Long_num &);
   Long_num& mult(Long_num &);
-  Long_num& exp(int n);
+  Long_num& mult_int(int);
+  Long_num& divi(Long_num &);
+  Long_num& sqrt();
+  Long_num& exp_int(int n);
+  Long_num& exp(Long_num &);
 
   Long_num& operator+(Long_num &);
   Long_num& operator-(Long_num &);
   Long_num& operator*(Long_num &);
-  Long_num& operator^(int);
+  Long_num& operator/(Long_num &);
+  Long_num& operator^(Long_num &);
 };
 
 Long_num::Long_num(){
@@ -76,6 +84,10 @@ void Long_num::set_positivity(bool pos){
   positive = pos;
 }
 
+void Long_num::set_correctness(bool cr){
+  correct = cr;
+}
+
 Long_num& Long_num::summ(Long_num & b){
   vector<int> result;
   bool res_pos = true;
@@ -106,10 +118,12 @@ Long_num& Long_num::diff(Long_num & b){
   for(int i = 0; i < this->number.size(); i++){
     result.push_back(this->number[i]);
   }
-
   for (int i = 0; i < b.number.size(); i++){
     if(i == result.size()) result.push_back(0);
     result[i] -= b.number[i];
+  }
+  while(result[result.size() - 1] == 0 && result.size() > 1){
+    result.pop_back();
   }
   if(result[result.size() - 1] < 0){
     for(int i = 0; i < result.size(); i++){
@@ -162,7 +176,132 @@ Long_num& Long_num::mult(Long_num & b){
   return *c;
 }
 
-Long_num& Long_num::exp(int n){
+Long_num& Long_num::mult_int(int b){
+  vector<int> result;
+  int len_a = this->number.size();
+  for(int i = 0; i < len_a; i++){
+    result.push_back(this->number[i] * b);
+  }
+  for(int i = 0; i < result.size(); i++){
+    if(result[i] > 10){
+      if(i == result.size() - 1){
+        result.push_back(0);
+      }
+      result[i + 1] += result[i] / 10;
+      result[i] %= 10;
+    }
+  }
+  while(result[result.size() - 1] == 0 && result.size() > 1){
+    result.pop_back();
+  }
+  Long_num* c = new Long_num(result);
+  return *c;
+}
+
+Long_num& Long_num::divi(Long_num & b){
+  if(b.number.size() == 1 && b.number[0] == 0){
+    cout << "Division by ZERO!" << endl;
+    vector<int> result;
+    result.push_back(0);
+    Long_num *c = new Long_num(result);
+    c -> set_correctness(false);
+    return *c;
+  } else {
+    vector<int> result;
+    vector<int> s;
+    Long_num currVal(s);
+    currVal.set_positivity(true);
+    int len_a = this->number.size();
+    int len_b = b.number.size();
+    int l, h, x;
+    for(int i = len_a - 1; i >= 0; i--){
+      currVal.number.insert(currVal.number.begin(), 0);
+      currVal.number[0] = this->number[i];
+      l = 0; h = 10; x = 0;
+      while(l <= h){
+        int m = (l + h) / 2;
+        Long_num curr = b.mult_int(m);
+        curr.set_positivity(true);
+        curr = curr - currVal;
+        if((curr.number.size() == 1 && curr.number[0] == 0) || !(curr.positive)){
+          x = m;
+          l = m + 1;
+        } else {
+          h = m - 1;
+        }
+      }
+      result.insert(result.begin(), x);
+      //result[i] = x;
+      currVal = currVal - b.mult_int(x);
+      // while(result[result.size() - 1] == 0 && result.size() > 1){
+      //   result.pop_back();
+      // }
+    }
+    while(result[result.size() - 1] == 0 && result.size() > 1){
+      result.pop_back();
+    }
+    Long_num* c = new Long_num(result);
+    //c->set_positivity(!((this->positive && b.positive)||(!(this->positive) && !(b.positive))));
+    c->set_positivity((this->positive && b.positive)||(!(this->positive) && !(b.positive)));
+    if(c->number.size() == 1 && c->number[0] == 0) c->set_positivity(true);
+    return *c;
+  }
+}
+
+Long_num& Long_num::sqrt(){
+  if (!(this -> positive)){
+    cout << "The root of a NEGATIVE number!" << endl;
+    vector<int> result;
+    result.push_back(0);
+    Long_num *c = new Long_num(result);
+    c -> set_correctness(false);
+    return *c;
+  } else {
+    int count = this -> number.size();
+    vector<int> result;
+    for(int i = 0; i < count; i++) result.push_back(0);
+    count--;
+    Long_num *curr = new Long_num(result);
+    while(count >= 0){
+      int l = 0; int h = 10; int x = 0;
+      while(l <= h){
+        int m = (l + h) / 2;
+        curr->number[count] = m;
+        Long_num temp = ((*curr) * (*curr)) - *this;
+        if((temp.number.size() == 1 && temp.number[0] == 0) || !(temp.positive)){
+          x = m;
+          l = m + 1;
+        } else {
+          h = m - 1;
+        }
+      }
+      curr->number[count--] = x;
+    }
+    while(curr->number[curr->number.size() - 1] == 0 && curr->number.size() > 1){
+      curr->number.pop_back();
+    }
+    // while(result[result.size() - 1] == 0 && result.size() > 1){
+    //   result.pop_back();
+    // }
+    return *curr;
+  }
+}
+
+Long_num& Long_num::exp(Long_num & b){
+  Long_num temp = b;
+  vector<int> one;
+  one.push_back(1);
+  Long_num *decr = new Long_num(one);
+  Long_num *res = new Long_num(*this);
+  res -> set_positivity(this->positive);
+  while(!(temp.number[temp.number.size() - 1] == 1 && temp.number.size() == 1)){
+    *res = mult(*res);
+    temp = temp - *decr;
+  }
+  return *res;
+}
+
+Long_num& Long_num::exp_int(int n){
   Long_num *res = new Long_num(*this);
   res -> set_positivity(this->positive);
   for (int i = 1; i < n; i++){
@@ -199,6 +338,10 @@ Long_num& Long_num::operator*(Long_num & b){
   return mult(b);
 }
 
-Long_num& Long_num::operator^(int n){
-  return exp(n);
+Long_num& Long_num::operator/(Long_num & b){
+  return divi(b);
+}
+
+Long_num& Long_num::operator^(Long_num & b){
+  return exp(b);
 }
