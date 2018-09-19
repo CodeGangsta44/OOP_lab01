@@ -31,6 +31,8 @@ public:
   Long_num& operator*(Long_num &);
   Long_num& operator/(Long_num &);
   Long_num& operator^(Long_num &);
+
+  ~Long_num();
 };
 
 Long_num::Long_num(){
@@ -344,4 +346,8 @@ Long_num& Long_num::operator/(Long_num & b){
 
 Long_num& Long_num::operator^(Long_num & b){
   return exp(b);
+}
+
+Long_num::~Long_num(){
+  number.clear();
 }
