@@ -17,6 +17,8 @@ public:
   void print();
   void set_positivity(bool);
   void set_correctness(bool);
+  bool get_positivity();
+  bool get_correctness();
   Long_num& summ(Long_num &);
   Long_num& diff(Long_num &);
   Long_num& mult(Long_num &);
@@ -31,6 +33,25 @@ public:
   Long_num& operator*(Long_num &);
   Long_num& operator/(Long_num &);
   Long_num& operator^(Long_num &);
+
+  void operator+=(Long_num &);
+  void operator-=(Long_num &);
+  void operator*=(Long_num &);
+  void operator/=(Long_num &);
+
+  Long_num& operator-();
+
+  Long_num& operator++();
+  Long_num& operator++(int);
+  Long_num& operator--();
+  Long_num& operator--(int);
+
+  bool operator==(Long_num &);
+  bool operator!=(Long_num &);
+  bool operator<(Long_num &);
+  bool operator>(Long_num &);
+  bool operator<=(Long_num &);
+  bool operator>=(Long_num &);
 
   ~Long_num();
 };
@@ -64,10 +85,12 @@ Long_num::Long_num(vector<int> & v){
 }
 
 Long_num::Long_num(Long_num & original){
+  number.clear();
   for(int i = 0; i < original.number.size(); i++){
     number.push_back(original.number[i]);
   }
   positive = original.positive;
+  correct = original.correct;
   // if (!(original.number[0] == 0 && original.number.size() == 1)){
   //   positive = !(original.positive);
   // }
@@ -88,6 +111,14 @@ void Long_num::set_positivity(bool pos){
 
 void Long_num::set_correctness(bool cr){
   correct = cr;
+}
+
+bool Long_num::get_positivity(){
+  return positive;
+}
+
+bool Long_num::get_correctness(){
+  return correct;
 }
 
 Long_num& Long_num::summ(Long_num & b){
@@ -290,6 +321,12 @@ Long_num& Long_num::sqrt(){
 }
 
 Long_num& Long_num::exp(Long_num & b){
+  if(!b.get_positivity()){
+    vector<int> zero;
+    zero.push_back(0);
+    Long_num *res = new Long_num(zero);
+    return *res;
+  }
   Long_num temp = b;
   vector<int> one;
   one.push_back(1);
@@ -346,6 +383,119 @@ Long_num& Long_num::operator/(Long_num & b){
 
 Long_num& Long_num::operator^(Long_num & b){
   return exp(b);
+}
+
+void Long_num::operator+=(Long_num & b){
+  Long_num result = *this;
+  if(this->positive && b.positive) result =  summ(b);
+  if(this->positive && !(b.positive)) result = diff(b);
+  if(!(this->positive) && b.positive) result = b.diff(*this);
+  if(!(this->positive) && !(b.positive)){
+    Long_num *res = new Long_num(summ(b));
+    res -> set_positivity(false);
+    result = *res;
+  }
+  *this = result;
+}
+
+void Long_num::operator-=(Long_num & b){
+  Long_num result = *this;
+  if(this->positive && b.positive) result = diff(b);
+  if(this->positive && !(b.positive)) result = summ(b);
+  if(!(this->positive) && b.positive){
+    Long_num *res = new Long_num(b.summ(*this));
+    res -> set_positivity(false);
+    result = *res;
+  }
+  if(!(this->positive) && !(b.positive)) result = b.diff(*this);
+  *this = result;
+}
+
+void Long_num::operator*=(Long_num & b){
+  *this = mult(b);
+}
+
+void Long_num::operator/=(Long_num & b){
+  *this = divi(b);
+}
+
+Long_num& Long_num::operator-(){
+  Long_num *result = new Long_num(*this);
+  result->set_positivity(!this->get_positivity());
+  return *result;
+}
+
+Long_num& Long_num::operator++(){
+  vector<int> one;
+  one.push_back(1);
+  Long_num incr(one);
+  *this = (*this) + incr;
+  return *this;
+}
+
+Long_num& Long_num::operator++(int){
+  Long_num *result = new Long_num(*this);
+  ++(*this);
+  return *result;
+}
+
+Long_num& Long_num::operator--(){
+  vector<int> one;
+  one.push_back(1);
+  Long_num decr(one);
+  *this = (*this) - decr;
+  return *this;
+}
+
+Long_num& Long_num::operator--(int){
+  Long_num *result = new Long_num(*this);
+  --(*this);
+  return *result;
+}
+
+bool Long_num::operator==(Long_num & b){
+  if(this->positive == b.positive && this->number.size() == b.number.size()){
+    for(int i = b.number.size() - 1; i >= 0; i--){
+      if(this->number[i] != b.number[i]) return false;
+    }
+    return true;
+  } else return false;
+}
+
+bool Long_num::operator!=(Long_num & b){
+  return !((*this) == b);
+}
+
+bool Long_num::operator<(Long_num & b){
+  if((this->positive && !(b.positive)) || (*this) == b) return false;
+  if(!(this->positive) && b.positive) return true;
+  if(this->number.size() == b.number.size()){
+    for(int i = b.number.size() - 1; i >= 0; i--){
+      if(this->number[i] > b.number[i]) return !(this->get_positivity());
+    }
+    return true;
+  }
+  if(this->number.size() < b.number.size()) return this->get_positivity();
+}
+
+bool Long_num::operator>(Long_num & b){
+  if((this->positive && !(b.positive))) return true;
+  if(!(this->positive) && b.positive || (*this) == b) return false;
+  if(this->number.size() == b.number.size()){
+    for(int i = b.number.size() - 1; i >= 0; i--){
+      if(this->number[i] < b.number[i]) return !(this->get_positivity());
+    }
+    return true;
+  }
+  if(this->number.size() > b.number.size()) return this->get_positivity();
+}
+
+bool Long_num::operator<=(Long_num & b){
+  return (((*this) < b) || ((*this) == b));
+}
+
+bool Long_num::operator>=(Long_num & b){
+  return (((*this) > b) || ((*this) == b));
 }
 
 Long_num::~Long_num(){
